@@ -2,12 +2,11 @@ package gin_session
 
 
 import (
-"fmt"
-"github.com/gin-gonic/gin"
-"github.com/sirupsen/logrus"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"log"
 )
 // Session服务
-
 
 type Session interface {
 	ID()string
@@ -63,16 +62,15 @@ func SessionMiddleware(sm SessionMgr, options Options)gin.HandlerFunc{
 		sessionID, err := c.Cookie("session_id")
 		if err != nil {
 			// 取不到session_id
-			logrus.Info("取不到session_id，现在创建一个")
+			log.Printf("get session_id from Cookie failed，err:%v\n", err)
 			session, _ = sm.CreateSession()
 			sessionID = session.ID()
 		}
-		logrus.Info("请求中的SessionID:",sessionID)
+		log.Printf("SessionID:%v\n", sessionID)
 		session, err = sm.GetSession(sessionID)
 		if err != nil {
 			// 取不到SessionData
-			logrus.Info("取不到SessionData，现在创建一个")
-			logrus.Info(sessionID)
+			log.Printf("get Session by %s failed，err:%v\n", sessionID, err)
 			session, _ = sm.CreateSession()
 			sessionID = session.ID()
 		}

@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	uuid "github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
+	"log"
 	"strconv"
 	"sync"
 	"time"
 )
 
 // redis版Session服务
-
-var log = logrus.New()
 
 type redisSession struct {
 	id string
@@ -101,7 +99,7 @@ func (r *redisSession) Save() {
 	}
 	data, err := json.Marshal(r.data)
 	if err != nil {
-		logrus.Errorf("marshal r.data failed, err:%v\n", err)
+		log.Fatalf("marshal r.data failed, err:%v\n", err)
 		return
 	}
 	r.client.Set(r.id, data, time.Second*time.Duration(r.expired))
@@ -136,7 +134,7 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error){
 		password = options[0]
 		tmpDB, err := strconv.ParseInt(options[1], 10, 64)
 		if err != nil {
-			log.Error("invalid redis DB params")
+			log.Fatalln("invalid redis DB params")
 		}
 		db = int(tmpDB)
 	}

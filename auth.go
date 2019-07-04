@@ -2,6 +2,7 @@ package gin_session
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -11,9 +12,9 @@ import (
 func AuthMiddleware()gin.HandlerFunc{
 	return func(c *gin.Context){
 		sd := c.MustGet("session").(Session)
-		log.Debugf("AuthMD:%#v\n", sd)
+		log.Printf("get session:%v from AuthMD\n", sd)
 		isLogin , err := sd.Get("isLogin")
-		log.Debug(isLogin, err,err == nil && isLogin.(bool))
+		log.Println(isLogin, err,err == nil && isLogin.(bool))
 		if err == nil && isLogin.(bool) {
 			// 是登录状态
 			c.Next()

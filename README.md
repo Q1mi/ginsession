@@ -1,4 +1,4 @@
-# gin-session
+# gin_session
 A session middleware for gin framework.
 
 
@@ -18,7 +18,7 @@ import "github.com/Q1mi/gin_session"
 ## Examples
 
 
-Redis-based
+### Redis-based
 
 ```go
 package main
@@ -69,7 +69,7 @@ func main(){
 }
 ```
 
-memory_based:
+### memory_based:
 
 ```go
 package main
