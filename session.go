@@ -75,11 +75,10 @@ func SessionMiddleware(sm SessionMgr, options Options)gin.HandlerFunc{
 			sessionID = session.ID()
 		}
 		session.SetExpired(options.MaxAge)
+
 		c.Set("session", session)
-
-		c.Next()
-		// 回写Cookie
+		// 回写Cookie要在handler返回前
 		c.SetCookie("session_id", sessionID, options.MaxAge, options.Path, options.Domain, options.Secure, options.HttpOnly)
-
+		c.Next()
 	}
 }
