@@ -1,4 +1,4 @@
-package gin_session
+package ginsession
 
 import (
 	"github.com/gin-gonic/gin"

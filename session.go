@@ -1,4 +1,4 @@
-package gin_session
+package ginsession
 
 import (
 	"fmt"
@@ -7,12 +7,14 @@ import (
 )
 
 const (
-	SessionCookieName = "session_id" // 保存在Cookie中的Session标识
-	SessionName       = "session"    // 保存在请求上下文中的Session标识
+	// SessionCookieName 保存在Cookie中的Session标识
+	SessionCookieName = "session_id"
+	// SessionName 保存在请求上下文中的Session标识
+	SessionName       = "session"
 )
 
-// Session服务
 
+// Session session
 type Session interface {
 	ID() string
 	Get(string) (interface{}, error)
@@ -29,7 +31,7 @@ type SessionMgr interface {
 	CreateSession() (Session, error)           // 创建一个新的Session记录
 }
 
-// Cookie Options
+// Options Cookie Options
 type Options struct {
 	Path   string
 	Domain string
@@ -57,7 +59,7 @@ func CreateSessionMgr(name string, addr string, options ...string) (sm SessionMg
 	return
 }
 
-// Session Middleware
+// SessionMiddleware gin middleware
 func SessionMiddleware(sm SessionMgr, options Options) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 0. 请求进来之后给每个请求分配个session

@@ -1,4 +1,4 @@
-package gin_session
+package ginsession
 
 import (
 	"encoding/json"
@@ -13,6 +13,7 @@ import (
 
 // redis版Session服务
 
+// redisSession redis-based session
 type redisSession struct {
 	id         string
 	data       map[string]interface{}
@@ -111,6 +112,7 @@ type redisSessionMgr struct {
 	client  *redis.Client
 }
 
+// NewRedisSessionMgr redis版sessionMgr构造函数
 func NewRedisSessionMgr() *redisSessionMgr {
 	return &redisSessionMgr{
 		session: make(map[string]Session, 1024),
@@ -147,6 +149,7 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error) {
 	return nil
 }
 
+// GetSession 根据sessionID 获取session
 func (r *redisSessionMgr) GetSession(sessionID string) (sd Session, err error) {
 	// 取之前加锁
 	r.rwLock.RLock()

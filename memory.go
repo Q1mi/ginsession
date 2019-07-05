@@ -1,4 +1,4 @@
-package gin_session
+package ginsession
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type memSession struct {
 	// 过期时间
 }
 
-// NewSessionData 构造函数
+// NewMemSession 构造函数
 func NewMemSession(id string) *memSession {
 	return &memSession{
 		id:   id,
@@ -66,6 +66,7 @@ func (m *memSession) Save() {
 	return
 }
 
+// SetExpired 设置session超时时间
 func (m *memSession) SetExpired(expired int) {
 	m.expired = expired
 }
@@ -83,11 +84,12 @@ func NewMemSessionMgr() *MemSessionMgr {
 	}
 }
 
+// Init 初始化sessionMgr
 func (m *MemSessionMgr) Init(addr string, options ...string) (err error) {
 	return
 }
 
-// GetSessionData 根据传进来的SessionID找到对应的SessionData
+// GetSession 根据传进来的SessionID找到对应的SessionData
 func (m *MemSessionMgr) GetSession(sessionID string) (sd Session, err error) {
 	// 取之前加锁
 	m.rwLock.RLock()

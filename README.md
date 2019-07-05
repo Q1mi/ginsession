@@ -1,4 +1,4 @@
-# gin_session
+# ginsession
 A session middleware for gin framework.
 
 
@@ -12,7 +12,7 @@ go get github.com/Q1mi/gin-session
 Import it in you code:
 
 ```bash
-import "github.com/Q1mi/gin_session"
+import "github.com/Q1mi/ginsession"
 ```
 
 ## Examples
@@ -30,19 +30,19 @@ import (
 
 	"net/http"
 
-	"github.com/Q1mi/gin_session"
+	"github.com/Q1mi/ginsession"
 	"github.com/gin-gonic/gin"
 )
 
 
 func main(){
 	r := gin.Default()
-	mgrObj, err := gin_session.CreateSessionMgr("redis", "localhost:6379")
+	mgrObj, err := ginsession.CreateSessionMgr("redis", "localhost:6379")
 	if err != nil {
 		log.Fatalf("create manager obj failed, err:%v\n", err)
 		return
 	}
-	sm := gin_session.SessionMiddleware(mgrObj, gin_session.Options{
+	sm := ginsession.SessionMiddleware(mgrObj, ginsession.Options{
 		Path: "/",
 		Domain: "127.0.0.1",
 		MaxAge: 60,
@@ -53,7 +53,7 @@ func main(){
 	r.Use(sm)
 
 	r.GET("/incr", func(c *gin.Context) {
-		session := c.MustGet("session").(gin_session.Session)
+		session := c.MustGet("session").(ginsession.Session)
 		fmt.Printf("%#v\n", session)
 		var count int
 		v, err := session.Get("count")
@@ -85,19 +85,19 @@ import (
 
 	"net/http"
 
-	"github.com/Q1mi/gin_session"
+	"github.com/Q1mi/ginsession"
 	"github.com/gin-gonic/gin"
 )
 
 
 func main(){
 	r := gin.Default()
-	mgrObj, err := gin_session.CreateSessionMgr("memory", "")
+	mgrObj, err := ginsession.CreateSessionMgr("memory", "")
 	if err != nil {
 		log.Fatalf("create manager obj failed, err:%v\n", err)
 		return
 	}
-	sm := gin_session.SessionMiddleware(mgrObj, gin_session.Options{
+	sm := ginsession.SessionMiddleware(mgrObj, ginsession.Options{
 		Path: "/",
 		Domain: "127.0.0.1",
 		MaxAge: 60,
@@ -108,7 +108,7 @@ func main(){
 	r.Use(sm)
 
 	r.GET("/incr", func(c *gin.Context) {
-		session := c.MustGet("session").(gin_session.Session)
+		session := c.MustGet("session").(ginsession.Session)
 		fmt.Printf("%#v\n", session)
 		var count int
 		v, err := session.Get("count")

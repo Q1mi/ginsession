@@ -1,4 +1,4 @@
-module github.com/Q1mi/gin_session
+module github.com/Q1mi/ginsession
 
 go 1.12
 
