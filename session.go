@@ -1,22 +1,21 @@
 package gin_session
 
-
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 )
 
-
 const (
 	SessionCookieName = "session_id" // 保存在Cookie中的Session标识
-	SessionName = "session" // 保存在请求上下文中的Session标识
+	SessionName       = "session"    // 保存在请求上下文中的Session标识
 )
+
 // Session服务
 
 type Session interface {
-	ID()string
-	Get(string)(interface{}, error)
+	ID() string
+	Get(string) (interface{}, error)
 	Set(string, interface{})
 	Del(string)
 	Save()
@@ -25,9 +24,9 @@ type Session interface {
 
 // SessionMgr 全局的Session管理者
 type SessionMgr interface {
-	Init(addr string, options ...string)error // 初始化对应的Session存储
-	GetSession(string)(Session, error) // 根据SessionID获取对应的Session
-	CreateSession()(Session, error) // 创建一个新的Session记录
+	Init(addr string, options ...string) error // 初始化对应的Session存储
+	GetSession(string) (Session, error)        // 根据SessionID获取对应的Session
+	CreateSession() (Session, error)           // 创建一个新的Session记录
 }
 
 // Cookie Options
@@ -43,7 +42,7 @@ type Options struct {
 }
 
 // CreateSessionMgr 用于初始化一个SessionMgr
-func CreateSessionMgr(name string, addr string, options...string)(sm SessionMgr, err error){
+func CreateSessionMgr(name string, addr string, options ...string) (sm SessionMgr, err error) {
 
 	switch name {
 	case "memory":
@@ -59,8 +58,8 @@ func CreateSessionMgr(name string, addr string, options...string)(sm SessionMgr,
 }
 
 // Session Middleware
-func SessionMiddleware(sm SessionMgr, options Options)gin.HandlerFunc{
-	return func(c *gin.Context){
+func SessionMiddleware(sm SessionMgr, options Options) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		// 0. 请求进来之后给每个请求分配个session
 		// 后续处理函数只需通过c.Get("session")即可操作该请求对应的Session
 		var session Session

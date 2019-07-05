@@ -14,25 +14,24 @@ import (
 // redis版Session服务
 
 type redisSession struct {
-	id string
-	data map[string]interface{}
-	loadFlag sync.Once
-	loadFunc func()
+	id         string
+	data       map[string]interface{}
+	loadFlag   sync.Once
+	loadFunc   func()
 	modifyFlag bool // 是否修改的标志位
-	expired int // 超时时间
-	rwLock sync.RWMutex
-	client *redis.Client
+	expired    int  // 超时时间
+	rwLock     sync.RWMutex
+	client     *redis.Client
 }
 
-
 // NewRedisSession 是redisSession构造函数
-func NewRedisSession(id string, client *redis.Client)(session Session){
-	r:= &redisSession{
-		id: id,
-		data: make(map[string]interface{}, 8),
+func NewRedisSession(id string, client *redis.Client) (session Session) {
+	r := &redisSession{
+		id:     id,
+		data:   make(map[string]interface{}, 8),
 		client: client,
 	}
-	r.loadFunc = func(){
+	r.loadFunc = func() {
 		loadFromRedis(r)
 	}
 	return r
@@ -43,7 +42,7 @@ func (r *redisSession) ID() string {
 }
 
 // load session data from redis
-func loadFromRedis(r *redisSession){
+func loadFromRedis(r *redisSession) {
 	data, err := r.client.Get(r.id).Result()
 	if err != nil {
 		r.data = make(map[string]interface{})
@@ -63,7 +62,7 @@ func (r *redisSession) Get(key string) (value interface{}, err error) {
 	r.rwLock.RLock()
 	defer r.rwLock.RUnlock()
 	value, ok := r.data[key]
-	if !ok{
+	if !ok {
 		err = fmt.Errorf("invalid Key")
 		return
 	}
@@ -71,7 +70,7 @@ func (r *redisSession) Get(key string) (value interface{}, err error) {
 
 }
 
-func (r *redisSession) Set(key string,value interface{}) {
+func (r *redisSession) Set(key string, value interface{}) {
 	// 获取写锁
 	r.rwLock.Lock()
 	defer r.rwLock.Unlock()
@@ -87,10 +86,9 @@ func (r *redisSession) Del(key string) {
 	r.modifyFlag = true
 }
 
-func (r *redisSession)SetExpired(expired int){
+func (r *redisSession) SetExpired(expired int) {
 	r.expired = expired
 }
-
 
 func (r *redisSession) Save() {
 	r.rwLock.Lock()
@@ -107,31 +105,28 @@ func (r *redisSession) Save() {
 	r.modifyFlag = false
 }
 
-
-
 type redisSessionMgr struct {
 	session map[string]Session
-	rwLock sync.RWMutex
-	client *redis.Client
+	rwLock  sync.RWMutex
+	client  *redis.Client
 }
 
-func NewRedisSessionMgr()*redisSessionMgr{
+func NewRedisSessionMgr() *redisSessionMgr {
 	return &redisSessionMgr{
-		session:make(map[string]Session, 1024),
+		session: make(map[string]Session, 1024),
 	}
 }
 
-
-func (r *redisSessionMgr) Init(addr string, options ...string) (err error){
+func (r *redisSessionMgr) Init(addr string, options ...string) (err error) {
 	var (
 		password string
-		db int
+		db       int
 	)
 
-	if len(options) == 1{
+	if len(options) == 1 {
 		password = options[0]
 	}
-	if len(options) == 2{
+	if len(options) == 2 {
 		password = options[0]
 		tmpDB, err := strconv.ParseInt(options[1], 10, 64)
 		if err != nil {
@@ -142,7 +137,7 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error){
 	r.client = redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password, // no password set
-		DB:       db,  // use default DB
+		DB:       db,       // use default DB
 	})
 
 	_, err = r.client.Ping().Result()
@@ -165,7 +160,7 @@ func (r *redisSessionMgr) GetSession(sessionID string) (sd Session, err error) {
 }
 
 // CreateSession 创建一条Session记录
-func (r *redisSessionMgr) CreateSession() (sd Session,err error) {
+func (r *redisSessionMgr) CreateSession() (sd Session, err error) {
 	// 1. 造一个sessionID
 	uuidObj, err := uuid.NewV4()
 	if err != nil {
@@ -178,8 +173,3 @@ func (r *redisSessionMgr) CreateSession() (sd Session,err error) {
 	// 3. 返回SessionData
 	return
 }
-
-
-
-
-
