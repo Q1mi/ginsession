@@ -10,9 +10,8 @@ const (
 	// SessionCookieName 保存在Cookie中的Session标识
 	SessionCookieName = "session_id"
 	// SessionName 保存在请求上下文中的Session标识
-	SessionName       = "session"
+	SessionName = "session"
 )
-
 
 // Session session
 type Session interface {
