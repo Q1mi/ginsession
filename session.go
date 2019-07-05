@@ -6,6 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 )
+
+
+const (
+	SessionCookieName = "session_id" // 保存在Cookie中的Session标识
+	SessionName = "session" // 保存在请求上下文中的Session标识
+)
 // Session服务
 
 type Session interface {
@@ -56,12 +62,12 @@ func CreateSessionMgr(name string, addr string, options...string)(sm SessionMgr,
 func SessionMiddleware(sm SessionMgr, options Options)gin.HandlerFunc{
 	return func(c *gin.Context){
 		// 0. 请求进来之后给每个请求分配个session
-		// 后续处理函数只需通过c.Get("session")即可操作该请求对应的SessionData
+		// 后续处理函数只需通过c.Get("session")即可操作该请求对应的Session
 		var session Session
 		// 1. 先从请求的Cookie中获取session_id
 		sessionID, err := c.Cookie("session_id")
 		if err != nil {
-			// 取不到session_id
+			// 取不到session_id，创建一份新的Session
 			log.Printf("get session_id from Cookie failed，err:%v\n", err)
 			session, _ = sm.CreateSession()
 			sessionID = session.ID()
@@ -69,16 +75,16 @@ func SessionMiddleware(sm SessionMgr, options Options)gin.HandlerFunc{
 		log.Printf("SessionID:%v\n", sessionID)
 		session, err = sm.GetSession(sessionID)
 		if err != nil {
-			// 取不到SessionData
+			// 根据sessionID取不到Session数据
 			log.Printf("get Session by %s failed，err:%v\n", sessionID, err)
 			session, _ = sm.CreateSession()
 			sessionID = session.ID()
 		}
 		session.SetExpired(options.MaxAge)
 
-		c.Set("session", session)
-		// 回写Cookie要在handler返回前
-		c.SetCookie("session_id", sessionID, options.MaxAge, options.Path, options.Domain, options.Secure, options.HttpOnly)
+		c.Set(SessionName, session)
+		// 回写Cookie要在handlerFunc返回前
+		c.SetCookie(SessionCookieName, sessionID, options.MaxAge, options.Path, options.Domain, options.Secure, options.HttpOnly)
 		c.Next()
 	}
 }

@@ -84,6 +84,7 @@ func (r *redisSession) Del(key string) {
 	r.rwLock.Lock()
 	defer r.rwLock.Unlock()
 	delete(r.data, key)
+	r.modifyFlag = true
 }
 
 func (r *redisSession)SetExpired(expired int){
