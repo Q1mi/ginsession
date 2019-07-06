@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/Q1mi/gin-session)](https://goreportcard.com/report/github.com/Q1mi/gin-session)
+
 # ginsession
 A session middleware for gin framework.
 
