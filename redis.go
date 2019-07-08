@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// redis版Session服务
+// redis-based session serve
 
 // redisSession redis-based session
 type redisSession struct {
@@ -19,13 +19,13 @@ type redisSession struct {
 	data       map[string]interface{}
 	loadFlag   sync.Once
 	loadFunc   func()
-	modifyFlag bool // 是否修改的标志位
-	expired    int  // 超时时间
+	modifyFlag bool
+	expired    int
 	rwLock     sync.RWMutex
 	client     *redis.Client
 }
 
-// NewRedisSession 是redisSession构造函数
+// NewRedisSession redisSession constructor
 func NewRedisSession(id string, client *redis.Client) (session Session) {
 	r := &redisSession{
 		id:     id,
@@ -58,7 +58,7 @@ func loadFromRedis(r *redisSession) {
 }
 
 func (r *redisSession) Get(key string) (value interface{}, err error) {
-	r.loadFlag.Do(r.loadFunc) // 加载一次
+	r.loadFlag.Do(r.loadFunc) // ensure loaded only once
 
 	r.rwLock.RLock()
 	defer r.rwLock.RUnlock()
@@ -72,7 +72,6 @@ func (r *redisSession) Get(key string) (value interface{}, err error) {
 }
 
 func (r *redisSession) Set(key string, value interface{}) {
-	// 获取写锁
 	r.rwLock.Lock()
 	defer r.rwLock.Unlock()
 	r.data[key] = value
@@ -80,7 +79,6 @@ func (r *redisSession) Set(key string, value interface{}) {
 }
 
 func (r *redisSession) Del(key string) {
-	// 删除key对应的键值对
 	r.rwLock.Lock()
 	defer r.rwLock.Unlock()
 	delete(r.data, key)
@@ -112,7 +110,7 @@ type redisSessionMgr struct {
 	client  *redis.Client
 }
 
-// NewRedisSessionMgr redis版sessionMgr构造函数
+// NewRedisSessionMgr redis-based sessionMgr constructor
 func NewRedisSessionMgr() *redisSessionMgr {
 	return &redisSessionMgr{
 		session: make(map[string]Session, 1024),
@@ -130,11 +128,10 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error) {
 	}
 	if len(options) == 2 {
 		password = options[0]
-		tmpDB, err := strconv.ParseInt(options[1], 10, 64)
+		db, err = strconv.Atoi(options[1])
 		if err != nil {
-			log.Fatalln("invalid redis DB params")
+			log.Fatalln("invalid redis DB param")
 		}
-		db = int(tmpDB)
 	}
 	r.client = redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -149,9 +146,8 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error) {
 	return nil
 }
 
-// GetSession 根据sessionID 获取session
+// GetSession get session from mgr by sessionID
 func (r *redisSessionMgr) GetSession(sessionID string) (sd Session, err error) {
-	// 取之前加锁
 	r.rwLock.RLock()
 	defer r.rwLock.RUnlock()
 	sd, ok := r.session[sessionID]
@@ -162,17 +158,13 @@ func (r *redisSessionMgr) GetSession(sessionID string) (sd Session, err error) {
 	return
 }
 
-// CreateSession 创建一条Session记录
-func (r *redisSessionMgr) CreateSession() (sd Session, err error) {
-	// 1. 造一个sessionID
-	uuidObj, err := uuid.NewV4()
-	if err != nil {
-		return
-	}
-	// 2. 造一个和它对应的Session
-	sd = NewRedisSession(uuidObj.String(), r.client)
-	// 将创建的SessionData保存起来
+// CreateSession create a new session
+func (r *redisSessionMgr) CreateSession() (sd Session) {
+	// 1. generate a sessionID by uuid
+	sessionID := uuid.NewV4().String()
+	// 2. create a session use sessionID
+	sd = NewRedisSession(sessionID, r.client)
+	// 3. save the session in mgr
 	r.session[sd.ID()] = sd
-	// 3. 返回SessionData
 	return
 }

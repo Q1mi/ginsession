@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	// SessionCookieName 保存在Cookie中的Session标识
+	// SessionCookieName key of SessionID store in Cookie
 	SessionCookieName = "session_id"
-	// SessionName 保存在请求上下文中的Session标识
-	SessionName = "session"
+	// SessionName key of session in gin.context
+	SessionContextName = "session"
 )
 
-// Session session
+// Session stores values for a session
 type Session interface {
 	ID() string
 	Get(string) (interface{}, error)
@@ -23,11 +23,11 @@ type Session interface {
 	SetExpired(int)
 }
 
-// SessionMgr 全局的Session管理者
+// SessionMgr a session manager
 type SessionMgr interface {
-	Init(addr string, options ...string) error // 初始化对应的Session存储
-	GetSession(string) (Session, error)        // 根据SessionID获取对应的Session
-	CreateSession() (Session, error)           // 创建一个新的Session记录
+	Init(addr string, options ...string) error // init the session store
+	GetSession(string) (Session, error)        // get the session by sessionID
+	CreateSession() (Session)           // create a new session
 }
 
 // Options Cookie Options
@@ -42,7 +42,7 @@ type Options struct {
 	HttpOnly bool
 }
 
-// CreateSessionMgr 用于初始化一个SessionMgr
+// CreateSessionMgr create a sessionMgr by given name
 func CreateSessionMgr(name string, addr string, options ...string) (sm SessionMgr, err error) {
 
 	switch name {
@@ -54,36 +54,36 @@ func CreateSessionMgr(name string, addr string, options ...string) (sm SessionMg
 		err = fmt.Errorf("unsupport %s\n", name)
 		return
 	}
-	err = sm.Init(addr, options...) // 初始化SessionMgr
+	err = sm.Init(addr, options...) // init the SessionMgr
 	return
 }
 
 // SessionMiddleware gin middleware
 func SessionMiddleware(sm SessionMgr, options Options) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 0. 请求进来之后给每个请求分配个session
-		// 后续处理函数只需通过c.Get("session")即可操作该请求对应的Session
+		// get or create a session for every request come in
+		// so next handlerFunc can get the session by c.Get(SessionContextName)
 		var session Session
-		// 1. 先从请求的Cookie中获取session_id
+		// try to get sessionID from cookie
 		sessionID, err := c.Cookie("session_id")
 		if err != nil {
-			// 取不到session_id，创建一份新的Session
+			// can't get sessionID from Cookie, need to create a new session
 			log.Printf("get session_id from Cookie failed，err:%v\n", err)
-			session, _ = sm.CreateSession()
+			session = sm.CreateSession()
 			sessionID = session.ID()
+		}else{
+			log.Printf("SessionID:%v\n", sessionID)
+			session, err = sm.GetSession(sessionID)
+			if err != nil {
+				// can't get session by the sessionID
+				log.Printf("get Session by %s failed，err:%v\n", sessionID, err)
+				session = sm.CreateSession()
+				sessionID = session.ID()
+			}
 		}
-		log.Printf("SessionID:%v\n", sessionID)
-		session, err = sm.GetSession(sessionID)
-		if err != nil {
-			// 根据sessionID取不到Session数据
-			log.Printf("get Session by %s failed，err:%v\n", sessionID, err)
-			session, _ = sm.CreateSession()
-			sessionID = session.ID()
-		}
-		session.SetExpired(options.MaxAge)
-
-		c.Set(SessionName, session)
-		// 回写Cookie要在handlerFunc返回前
+		session.SetExpired(options.MaxAge) // set session expired time
+		c.Set(SessionContextName, session)
+		// must write cookie before handlerFunc return
 		c.SetCookie(SessionCookieName, sessionID, options.MaxAge, options.Path, options.Domain, options.Secure, options.HttpOnly)
 		c.Next()
 	}
