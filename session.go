@@ -28,6 +28,7 @@ type SessionMgr interface {
 	Init(addr string, options ...string) error // init the session store
 	GetSession(string) (Session, error)        // get the session by sessionID
 	CreateSession() (Session)           // create a new session
+	Clear(string) // clear the request session data
 }
 
 // Options Cookie Options
@@ -65,7 +66,7 @@ func SessionMiddleware(sm SessionMgr, options Options) gin.HandlerFunc {
 		// so next handlerFunc can get the session by c.Get(SessionContextName)
 		var session Session
 		// try to get sessionID from cookie
-		sessionID, err := c.Cookie("session_id")
+		sessionID, err := c.Cookie(SessionCookieName)
 		if err != nil {
 			// can't get sessionID from Cookie, need to create a new session
 			log.Printf("get session_id from Cookie failed，err:%v\n", err)
@@ -85,6 +86,7 @@ func SessionMiddleware(sm SessionMgr, options Options) gin.HandlerFunc {
 		c.Set(SessionContextName, session)
 		// must write cookie before handlerFunc return
 		c.SetCookie(SessionCookieName, sessionID, options.MaxAge, options.Path, options.Domain, options.Secure, options.HttpOnly)
+		defer sm.Clear(sessionID)
 		c.Next()
 	}
 }

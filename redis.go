@@ -168,3 +168,10 @@ func (r *redisSessionMgr) CreateSession() (sd Session) {
 	r.session[sd.ID()] = sd
 	return
 }
+
+// Clear delete the request session in sessionMgr
+func (r *redisSessionMgr) Clear(sessionID string){
+	r.rwLock.Lock()
+	defer r.rwLock.Unlock()
+	delete(r.session, sessionID)
+}

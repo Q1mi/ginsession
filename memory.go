@@ -101,3 +101,10 @@ func (m *MemSessionMgr) CreateSession() (sd Session) {
 	m.session[sd.ID()] = sd
 	return
 }
+
+// Clear delete the request session in sessionMgr
+func (m *MemSessionMgr)Clear(sessionID string){
+	m.rwLock.Lock()
+	defer m.rwLock.Unlock()
+	delete(m.session, sessionID)
+}
