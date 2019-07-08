@@ -29,6 +29,10 @@ func (m *memSession) ID() string {
 	return m.id
 }
 
+func (m *memSession) Load() {
+	return
+}
+
 func (m *memSession) Get(key string) (value interface{}, err error) {
 	m.rwLock.RLock()
 	defer m.rwLock.RUnlock()

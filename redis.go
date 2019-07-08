@@ -17,8 +17,6 @@ import (
 type redisSession struct {
 	id         string
 	data       map[string]interface{}
-	loadFlag   sync.Once
-	loadFunc   func()
 	modifyFlag bool
 	expired    int
 	rwLock     sync.RWMutex
@@ -32,9 +30,6 @@ func NewRedisSession(id string, client *redis.Client) (session Session) {
 		data:   make(map[string]interface{}, 8),
 		client: client,
 	}
-	r.loadFunc = func() {
-		loadFromRedis(r)
-	}
 	return r
 }
 
@@ -43,7 +38,7 @@ func (r *redisSession) ID() string {
 }
 
 // load session data from redis
-func loadFromRedis(r *redisSession) {
+func (r *redisSession)Load() {
 	data, err := r.client.Get(r.id).Result()
 	if err != nil {
 		r.data = make(map[string]interface{})
@@ -57,9 +52,8 @@ func loadFromRedis(r *redisSession) {
 	}
 }
 
-func (r *redisSession) Get(key string) (value interface{}, err error) {
-	r.loadFlag.Do(r.loadFunc) // ensure loaded only once
 
+func (r *redisSession) Get(key string) (value interface{}, err error) {
 	r.rwLock.RLock()
 	defer r.rwLock.RUnlock()
 	value, ok := r.data[key]
@@ -146,15 +140,13 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error) {
 	return nil
 }
 
-// GetSession get session from mgr by sessionID
+// GetSession load session data and add to sessionMgr
 func (r *redisSessionMgr) GetSession(sessionID string) (sd Session, err error) {
+	sd = NewRedisSession(sessionID, r.client)
+	sd.Load()
 	r.rwLock.RLock()
-	defer r.rwLock.RUnlock()
-	sd, ok := r.session[sessionID]
-	if !ok {
-		err = fmt.Errorf("invalid session id")
-		return
-	}
+	r.session[sessionID] = sd
+	r.rwLock.RUnlock()
 	return
 }
 
