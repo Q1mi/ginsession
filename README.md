@@ -8,7 +8,7 @@ A session middleware for gin framework.
 
 Download and install:
 ```bash
-go get github.com/Q1mi/gin-session
+go get github.com/Q1mi/ginsession
 ```
 
 Import it in you code:
