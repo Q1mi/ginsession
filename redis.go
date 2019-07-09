@@ -41,14 +41,13 @@ func (r *redisSession) ID() string {
 
 // load session data from redis
 func (r *redisSession)Load()(err error) {
-	data, err := r.client.Get(r.id).Result()
+	data, err := r.client.Get(r.id).Bytes()
 	if err != nil {
 		log.Printf("get session data from redis by %s failed, err:%v\n", r.id, err)
 		return
 	}
 	// unmarshal
-	log.Printf("get data: %v from redis\n.", data)
-	dec := gob.NewDecoder(bytes.NewBuffer([]byte(data)))
+	dec := gob.NewDecoder(bytes.NewBuffer(data))
 	err = dec.Decode(&r.data)
 	if err != nil {
 		log.Printf("gob decode session data failed, err:%v\n", err)
