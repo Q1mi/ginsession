@@ -101,7 +101,7 @@ func (r *redisSession) Save() {
 		log.Fatalf("gob encode r.data failed, err:%v\n", err)
 		return
 	}
-	r.client.Set(r.id, data, time.Second*time.Duration(r.expired))
+	r.client.Set(r.id, string(data), time.Second*time.Duration(r.expired))
 	r.modifyFlag = false
 }
 
