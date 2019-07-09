@@ -2,6 +2,7 @@ package ginsession
 
 import (
 	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
@@ -46,15 +47,12 @@ func (r *redisSession)Load()(err error) {
 		return
 	}
 	// unmarshal
-	var tmp interface{}
-	decoder := json.NewDecoder(bytes.NewReader([]byte(data)))
-	decoder.UseNumber()
-	err = decoder.Decode(&tmp)
+	dec := gob.NewDecoder(bytes.NewBuffer([]byte(data)))
+	err = dec.Decode(&r.data)
 	if err != nil {
-		log.Printf("Unmarshal session data failed, err:%v\n", err)
+		log.Printf("gob decode session data failed, err:%v\n", err)
 		return
 	}
-	r.data, _ = tmp.(map[string]interface{})
 	return
 }
 
@@ -95,9 +93,12 @@ func (r *redisSession) Save() {
 	if !r.modifyFlag {
 		return
 	}
+	buf := new(bytes.Buffer)
+	enc := gob.NewEncoder(buf)
+	err := enc.Encode(r.data)
 	data, err := json.Marshal(r.data)
 	if err != nil {
-		log.Fatalf("marshal r.data failed, err:%v\n", err)
+		log.Fatalf("gob encode r.data failed, err:%v\n", err)
 		return
 	}
 	r.client.Set(r.id, data, time.Second*time.Duration(r.expired))
