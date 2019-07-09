@@ -3,7 +3,6 @@ package ginsession
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
 	uuid "github.com/satori/go.uuid"
