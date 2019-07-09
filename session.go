@@ -16,7 +16,7 @@ const (
 // Session stores values for a session
 type Session interface {
 	ID() string
-	Load() // load
+	Load()error // load
 	Get(string) (interface{}, error)
 	Set(string, interface{})
 	Del(string)

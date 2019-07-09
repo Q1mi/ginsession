@@ -29,7 +29,7 @@ func (m *memSession) ID() string {
 	return m.id
 }
 
-func (m *memSession) Load() {
+func (m *memSession) Load()(err error) {
 	return
 }
 

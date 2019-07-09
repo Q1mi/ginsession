@@ -38,18 +38,19 @@ func (r *redisSession) ID() string {
 }
 
 // load session data from redis
-func (r *redisSession)Load() {
+func (r *redisSession)Load()(err error) {
 	data, err := r.client.Get(r.id).Result()
 	if err != nil {
-		r.data = make(map[string]interface{})
+		log.Printf("get session data from redis by %s failed, err:%v\n", r.id, err)
 		return
 	}
 	// unmarshal
 	err = json.Unmarshal([]byte(data), &r.data)
 	if err != nil {
-		r.data = make(map[string]interface{})
+		log.Printf("Unmarshal session data failed, err:%v\n", err)
 		return
 	}
+	return
 }
 
 
@@ -143,7 +144,10 @@ func (r *redisSessionMgr) Init(addr string, options ...string) (err error) {
 // GetSession load session data and add to sessionMgr
 func (r *redisSessionMgr) GetSession(sessionID string) (sd Session, err error) {
 	sd = NewRedisSession(sessionID, r.client)
-	sd.Load()
+	err = sd.Load()
+	if err != nil {
+		return
+	}
 	r.rwLock.RLock()
 	r.session[sessionID] = sd
 	r.rwLock.RUnlock()
