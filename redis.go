@@ -96,13 +96,12 @@ func (r *redisSession) Save() {
 	buf := new(bytes.Buffer)
 	enc := gob.NewEncoder(buf)
 	err := enc.Encode(r.data)
-	data, err := json.Marshal(r.data)
 	if err != nil {
 		log.Fatalf("gob encode r.data failed, err:%v\n", err)
 		return
 	}
-	r.client.Set(r.id, data, time.Second*time.Duration(r.expired))
-	log.Printf("set data: %v to redis.\n", data)
+	r.client.Set(r.id, buf.Bytes(), time.Second*time.Duration(r.expired))
+	log.Printf("set data: %v to redis.\n", buf.Bytes())
 	r.modifyFlag = false
 }
 
