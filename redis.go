@@ -1,6 +1,7 @@
 package ginsession
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
@@ -45,7 +46,9 @@ func (r *redisSession)Load()(err error) {
 		return
 	}
 	// unmarshal
-	err = json.Unmarshal([]byte(data), &r.data)
+	decoder := json.NewDecoder(bytes.NewReader([]byte(data)))
+	decoder.UseNumber()
+	err = decoder.Decode(&r.data)
 	if err != nil {
 		log.Printf("Unmarshal session data failed, err:%v\n", err)
 		return
