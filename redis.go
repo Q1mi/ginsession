@@ -47,6 +47,7 @@ func (r *redisSession)Load()(err error) {
 		return
 	}
 	// unmarshal
+	log.Printf("get data: %v from redis\n.", data)
 	dec := gob.NewDecoder(bytes.NewBuffer([]byte(data)))
 	err = dec.Decode(&r.data)
 	if err != nil {
@@ -102,6 +103,7 @@ func (r *redisSession) Save() {
 		return
 	}
 	r.client.Set(r.id, string(data), time.Second*time.Duration(r.expired))
+	log.Printf("set data: %v to redis.\n", data)
 	r.modifyFlag = false
 }
 
