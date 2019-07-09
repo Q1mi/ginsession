@@ -46,13 +46,15 @@ func (r *redisSession)Load()(err error) {
 		return
 	}
 	// unmarshal
+	var tmp interface{}
 	decoder := json.NewDecoder(bytes.NewReader([]byte(data)))
 	decoder.UseNumber()
-	err = decoder.Decode(&r.data)
+	err = decoder.Decode(&tmp)
 	if err != nil {
 		log.Printf("Unmarshal session data failed, err:%v\n", err)
 		return
 	}
+	r.data, _ = tmp.(map[string]interface{})
 	return
 }
 
